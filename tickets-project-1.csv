@@ -1,0 +1,6 @@
+id,title,description,status,priority,type,assigneeId
+1,Fix nav bar,,IN_PROGRESS,MEDIUM,BUG,2
+2,Add dark mode,,DONE,MEDIUM,FEATURE,3
+3,Imported one,from csv,TODO,HIGH,BUG,
+4,Imported two,from csv,IN_PROGRESS,LOW,FEATURE,
+5,Overdue soon,,TODO,MEDIUM,BUG,3

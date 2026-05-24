@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: issueflow
+      POSTGRES_PASSWORD: issueflow
+      POSTGRES_DB: issueflow
+  #  volumes:
+   #   - type: bind
+   #     source: ./data
+   #     target: /var/lib/postgresql/data --> in case u need to save data to local storage
+    ports:
+      - target: 5432
+        published: 5432
+        protocol: tcp
+
+  # Adminer — a lightweight web UI for browsing the database, comparable to
+  # Spring Boot's H2 console. Once `docker compose up -d` is running, open
+  # http://localhost:8080 and log in with:
+  #     System:   PostgreSQL
+  #     Server:   db          (the service name above — Docker's internal DNS)
+  #     Username: issueflow
+  #     Password: issueflow
+  #     Database: issueflow   (or issueflow_test for the e2e database)
+  # This service is purely a developer convenience; the app does not depend
+  # on it.
+  adminer:
+    image: adminer
+    restart: always
+    depends_on:
+      - db
+    ports:
+      - target: 8080
+        published: 8080
+        protocol: tcp
