@@ -67,7 +67,7 @@ brief and the per-phase instructions.
 
 ### Per-phase prompt (repeated for phases 2–9)
 
-> Go ahead with Phase N (<phase name>). Follow the README and the
+> Go ahead with Phase N (`phase name`). Follow the README and the
 > requirements PDF as the contract. Implement the feature with the
 > layered Controller/Service/Repository structure, add DTO validation,
 > write thorough unit tests covering every key behavior, and verify it
