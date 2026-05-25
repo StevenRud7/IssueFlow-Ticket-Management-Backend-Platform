@@ -57,12 +57,12 @@ Both are described again in §8 once the app is up.
 
 ## 1. Prerequisites
 
-| Tool           | Version             | Notes                                    |
-|----------------|---------------------|------------------------------------------|
-| Node.js        | 20 LTS or newer     | `node --version`                         |
-| npm            | 10 or newer         | bundled with Node                        |
-| Docker         | any recent          | runs PostgreSQL via `compose.yml`        |
-| Docker Compose | v2 (`docker compose`) | bundled with Docker Desktop            |
+| Tool           | Version             | Notes                                                        |
+|----------------|---------------------|--------------------------------------------------------------|
+| Node.js        | 20 LTS or newer     | `node --version` ; `https://nodejs.org/en/download`          |
+| npm            | 10 or newer         | bundled with Node                                            |
+| Docker         | any recent          | runs PostgreSQL via `compose.yml`                            |
+| Docker Compose | v2 (`docker compose`) | bundled with Docker Desktop                                |
 
 A PostgreSQL 14+ server is required. The provided `compose.yml` is the
 easiest way to get one.
