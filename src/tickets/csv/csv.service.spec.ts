@@ -10,6 +10,20 @@ import { TicketsRepository } from '../tickets.repository';
 import { CsvExportService } from './csv-export.service';
 import { CsvImportService } from './csv-import.service';
 
+/**
+ * Unit tests for the CSV export and import services (§3.4).
+ *
+ * What: exporting a project's tickets to CSV text, and importing
+ * tickets in bulk from a CSV buffer.
+ * How: the tickets/projects repositories and AuditService are mocked;
+ * tests feed in ticket rows / CSV strings and assert on the output.
+ * Expected: the export header is exactly
+ * id,title,description,status,priority,type,assigneeId, and values
+ * containing commas/quotes are RFC-4180 quoted; the import returns a
+ * { created, failed, errors } summary, collecting per-row errors
+ * instead of aborting the whole batch.
+ */
+
 const ticketRow = (overrides: Partial<TicketRow> = {}): TicketRow => ({
   id: 1,
   title: 'Fix bug',

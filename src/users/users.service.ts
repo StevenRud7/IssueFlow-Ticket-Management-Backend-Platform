@@ -47,11 +47,19 @@ export class UsersService {
     private readonly audit: AuditService,
   ) {}
 
+  /**
+   * Lists every user as the public-facing UserResponse shape (no password
+   * hash). Used by GET /users.
+   */
   async findAll(): Promise<UserResponse[]> {
     const rows = await this.users.findAll();
     return rows.map(toUserResponse);
   }
 
+  /**
+   * Returns one user by id as a UserResponse. Throws 404 (via getOrThrow)
+   * when no user with that id exists. Used by GET /users/:id.
+   */
   async findById(id: number): Promise<UserResponse> {
     return toUserResponse(await this.getOrThrow(id));
   }
@@ -104,6 +112,12 @@ export class UsersService {
     return toUserResponse(row);
   }
 
+  /**
+   * Updates a user's fullName and/or role (the only mutable fields per
+   * §2.1). Requires at least one field — a no-op update is a 400. Throws
+   * 404 if the user doesn't exist. Records an UPDATE audit entry whose
+   * metadata is a before/after diff of the changed fields.
+   */
   async update(
     id: number,
     dto: UpdateUserDto,
@@ -136,6 +150,11 @@ export class UsersService {
     return toUserResponse(updated);
   }
 
+  /**
+   * Hard-deletes a user (users are not soft-deleted — only tickets and
+   * projects are). Throws 404 if the user doesn't exist. Records a DELETE
+   * audit entry capturing the username/role that was removed.
+   */
   async delete(id: number, performedBy: number): Promise<void> {
     // Confirm the row exists before deletion so the audit entry captures
     // the username/role being deleted.

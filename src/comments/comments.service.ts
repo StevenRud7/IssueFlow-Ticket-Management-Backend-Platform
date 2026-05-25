@@ -50,12 +50,24 @@ export class CommentsService {
     private readonly audit: AuditService,
   ) {}
 
+  /**
+   * Lists all comments on a ticket, each with its resolved `mentionedUsers`
+   * array (§3.6). Validates the ticket exists (404 otherwise). Backs
+   * GET /tickets/:ticketId/comments.
+   */
   async findByTicket(ticketId: number): Promise<CommentResponse[]> {
     await this.tickets.assertExistsAndGet(ticketId);
     const rows = await this.comments.findByTicket(ticketId);
     return this.attachMentions(rows);
   }
 
+  /**
+   * Adds a comment to a ticket. Parses `@username` mentions from the
+   * content and resolves them to user ids (§3.6) — unknown names are
+   * silently ignored. The comment row, its mention rows, and the audit
+   * entry are written in one transaction. Returns the comment with its
+   * `mentionedUsers` populated.
+   */
   async create(
     ticketId: number,
     dto: CreateCommentDto,
@@ -95,6 +107,13 @@ export class CommentsService {
     return this.toResponse(row);
   }
 
+  /**
+   * Edits a comment's content. Uses optimistic locking via `version` (§2.5
+   * "two users can't edit a comment at once") — a stale version is a 409.
+   * Re-parses @mentions from the new content and replaces the mention rows
+   * (§3.6 re-evaluation on update). 404 if the comment doesn't belong to
+   * the given ticket.
+   */
   async update(
     ticketId: number,
     commentId: number,
@@ -145,6 +164,11 @@ export class CommentsService {
     return this.toResponse(updated);
   }
 
+  /**
+   * Hard-deletes a comment (comments are not soft-deleted). 404 if the
+   * comment doesn't exist or doesn't belong to the given ticket. Records a
+   * DELETE audit entry.
+   */
   async delete(
     ticketId: number,
     commentId: number,

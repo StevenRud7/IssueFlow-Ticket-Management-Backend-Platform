@@ -62,21 +62,41 @@ export class TicketsService {
     private readonly deps: DependenciesRepository,
   ) {}
 
+  /**
+   * Lists all active tickets in a project as TicketResponse objects.
+   * Validates the project exists first (404 otherwise). Backs
+   * GET /tickets?projectId=N.
+   */
   async findByProject(projectId: number): Promise<TicketResponse[]> {
     await this.projects.assertExists(projectId);
     const rows = await this.tickets.findByProject(projectId);
     return rows.map(toTicketResponse);
   }
 
+  /**
+   * Lists every active ticket across all projects. Backs GET /tickets
+   * when no projectId filter is supplied.
+   */
   async findAll(): Promise<TicketResponse[]> {
     const rows = await this.tickets.findAll();
     return rows.map(toTicketResponse);
   }
 
+  /**
+   * Returns one ticket by id. Throws 404 (via getOrThrow) if absent or
+   * soft-deleted. Backs GET /tickets/:id.
+   */
   async findById(id: number): Promise<TicketResponse> {
     return toTicketResponse(await this.getOrThrow(id));
   }
 
+  /**
+   * Creates a ticket. Validates the project (and the explicit assignee, if
+   * given) exist. When no assigneeId is supplied, applies §3.8
+   * auto-assignment to the least-loaded DEVELOPER. Records a CREATE audit
+   * entry, plus an AUTO_ASSIGN (SYSTEM-actor) entry when auto-assignment
+   * fired.
+   */
   async create(
     dto: CreateTicketDto,
     performedBy: number,
@@ -147,6 +167,14 @@ export class TicketsService {
     return toTicketResponse(row);
   }
 
+  /**
+   * Updates a ticket. Enforces the §2.4 rules: optimistic locking via
+   * `version` (stale version → 409), a DONE ticket is terminal (any update
+   * → 409), status may only move forward in the lifecycle (backward → 400),
+   * and a ticket can't move to DONE while it has unresolved blockers (409).
+   * A manual priority change clears the `is_overdue` escalation flag (§3.7).
+   * Records an UPDATE audit entry with a before/after field diff.
+   */
   async update(
     id: number,
     dto: UpdateTicketDto,
@@ -242,6 +270,11 @@ export class TicketsService {
     return toTicketResponse(updated);
   }
 
+  /**
+   * Soft-deletes a ticket (§3.5) — sets `deleted_at` so it disappears from
+   * normal queries but can be restored. Throws 404 if already absent.
+   * Records a DELETE audit entry.
+   */
   async softDelete(id: number, performedBy: number): Promise<void> {
     const before = await this.getOrThrow(id);
     const deleted = await this.tickets.softDelete(id);

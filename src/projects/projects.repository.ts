@@ -13,6 +13,10 @@ import { ProjectRow } from './entities/project.entity';
 export class ProjectsRepository {
   constructor(private readonly db: DatabaseService) {}
 
+  /**
+   * Returns all active projects (the `deleted_at IS NULL` filter excludes
+   * soft-deleted ones), ordered by id ascending.
+   */
   async findAll(): Promise<ProjectRow[]> {
     const { rows } = await this.db.query<ProjectRow>(
       `SELECT id, name, description, owner_id, deleted_at, created_at, updated_at
@@ -23,6 +27,10 @@ export class ProjectsRepository {
     return rows;
   }
 
+  /**
+   * Looks up one active project by id. Returns null when no row matches or
+   * the project has been soft-deleted; the service decides on the 404.
+   */
   async findById(id: number): Promise<ProjectRow | null> {
     const { rows } = await this.db.query<ProjectRow>(
       `SELECT id, name, description, owner_id, deleted_at, created_at, updated_at
@@ -33,6 +41,10 @@ export class ProjectsRepository {
     return rows[0] ?? null;
   }
 
+  /**
+   * Inserts a new project and returns the created row. `description` is
+   * optional and stored as NULL when omitted.
+   */
   async create(input: {
     name: string;
     description?: string;

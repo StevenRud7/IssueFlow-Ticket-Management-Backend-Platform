@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from './database/database.service';
 
+/**
+ * Application-level service backing the root endpoints (`GET /` and
+ * `GET /health`). Not tied to any feature module — it exists to expose a
+ * greeting and a database-reachability probe.
+ */
 @Injectable()
 export class AppService {
   constructor(private readonly db: DatabaseService) {}
@@ -28,6 +33,9 @@ export class AppService {
     };
   }
 
+  /**
+   * Returns a static "is running" string for the public `GET /` endpoint.
+   */
   greeting(): string {
     return 'IssueFlow is running!';
   }

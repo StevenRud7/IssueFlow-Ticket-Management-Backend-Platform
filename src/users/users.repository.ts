@@ -16,6 +16,10 @@ import { UserRole } from './entities/user-role.enum';
 export class UsersRepository {
   constructor(private readonly db: DatabaseService) {}
 
+  /**
+   * Returns every user, ordered by id ascending. No soft-delete filter —
+   * users are hard-deleted, so every row here is a live user.
+   */
   async findAll(): Promise<UserRow[]> {
     const { rows } = await this.db.query<UserRow>(
       `SELECT id, username, email, full_name, role, password_hash,
@@ -26,6 +30,11 @@ export class UsersRepository {
     return rows;
   }
 
+  /**
+   * Looks up a single user by primary key. Returns null (not a thrown
+   * error) when no row matches — the service layer decides whether a
+   * missing user is a 404.
+   */
   async findById(id: number): Promise<UserRow | null> {
     const { rows } = await this.db.query<UserRow>(
       `SELECT id, username, email, full_name, role, password_hash,
@@ -69,6 +78,13 @@ export class UsersRepository {
     return rows;
   }
 
+  /**
+   * Inserts a new user and returns the created row (including the
+   * generated id and timestamps). `passwordHash` may be null — the README
+   * "Create a user" contract allows registration without a password.
+   * A duplicate username/email surfaces as a pg unique-violation, which
+   * the PgExceptionFilter translates into a 409.
+   */
   async create(input: {
     username: string;
     email: string;

@@ -31,6 +31,10 @@ export class TicketsRepository {
 
   constructor(private readonly db: DatabaseService) {}
 
+  /**
+   * Returns all active (non-soft-deleted) tickets in one project, ordered
+   * by id ascending.
+   */
   async findByProject(projectId: number): Promise<TicketRow[]> {
     const { rows } = await this.db.query<TicketRow>(
       `SELECT ${TicketsRepository.COLUMNS}
@@ -42,6 +46,9 @@ export class TicketsRepository {
     return rows;
   }
 
+  /**
+   * Returns every active ticket across all projects, ordered by id.
+   */
   async findAll(): Promise<TicketRow[]> {
     const { rows } = await this.db.query<TicketRow>(
       `SELECT ${TicketsRepository.COLUMNS}
@@ -52,6 +59,10 @@ export class TicketsRepository {
     return rows;
   }
 
+  /**
+   * Looks up one active ticket by id. Returns null if it doesn't exist or
+   * has been soft-deleted.
+   */
   async findById(id: number): Promise<TicketRow | null> {
     const { rows } = await this.db.query<TicketRow>(
       `SELECT ${TicketsRepository.COLUMNS}
@@ -62,6 +73,11 @@ export class TicketsRepository {
     return rows[0] ?? null;
   }
 
+  /**
+   * Inserts a new ticket and returns the created row. Optional fields fall
+   * back to the database defaults (status TODO, priority MEDIUM, version
+   * 1, is_overdue false).
+   */
   async create(input: {
     title: string;
     description?: string;
@@ -191,6 +207,10 @@ export class TicketsRepository {
     return rows[0] ?? null;
   }
 
+  /**
+   * Soft-deletes a ticket by stamping `deleted_at`. Returns true if a row
+   * was affected, false if the ticket was already absent/deleted.
+   */
   async softDelete(id: number): Promise<boolean> {
     const result = await this.db.query(
       `UPDATE tickets

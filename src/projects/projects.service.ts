@@ -45,15 +45,28 @@ export class ProjectsService {
     private readonly audit: AuditService,
   ) {}
 
+  /**
+   * Lists all active projects as ProjectResponse objects. Used by
+   * GET /projects.
+   */
   async findAll(): Promise<ProjectResponse[]> {
     const rows = await this.projects.findAll();
     return rows.map(toProjectResponse);
   }
 
+  /**
+   * Returns one project by id. Throws 404 (via getOrThrow) if it doesn't
+   * exist or has been soft-deleted. Used by GET /projects/:id.
+   */
   async findById(id: number): Promise<ProjectResponse> {
     return toProjectResponse(await this.getOrThrow(id));
   }
 
+  /**
+   * Creates a project. Validates the owner exists first (a missing owner
+   * is a 404, clearer than the database's foreign-key error). Records a
+   * CREATE audit entry.
+   */
   async create(
     dto: CreateProjectDto,
     performedBy: number,
@@ -83,6 +96,12 @@ export class ProjectsService {
     return toProjectResponse(row);
   }
 
+  /**
+   * Updates a project's name and/or description (§2.3). Requires at least
+   * one field — a no-op update is a 400. Throws 404 if the project is
+   * absent or soft-deleted. Records an UPDATE audit entry with a
+   * before/after field diff.
+   */
   async update(
     id: number,
     dto: UpdateProjectDto,
@@ -113,6 +132,11 @@ export class ProjectsService {
     return toProjectResponse(updated);
   }
 
+  /**
+   * Soft-deletes a project (§3.5) — sets `deleted_at` rather than removing
+   * the row, so it can be restored later. Throws 404 if the project is
+   * already absent. Records a DELETE audit entry.
+   */
   async softDelete(id: number, performedBy: number): Promise<void> {
     const before = await this.getOrThrow(id);
     const deleted = await this.projects.softDelete(id);
